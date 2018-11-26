@@ -1,0 +1,15 @@
+name: dart_lut
+version: 0.0.1
+description: Dart implementation of 3D Look Up Tables.
+author: Nikolai Simonov <nickolay.simonov@gmail.com>
+homepage: https://github.com/NiKoTron/dart-lut
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dev_dependencies:
+  test: ^1.3.0
+  image: ^2.0.4
+  args: ^1.5.1
+  path: ^1.6.2
+  

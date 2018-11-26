@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Unit Tests",
+            "type": "dart",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/dart_lut_test.dart"
+        },
+        {
+            "name": "Example App",
+            "program": "${workspaceFolder}/example/main.dart",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "-i",
+                "example/asserts/ca.jpg",
+                "-l",
+                "example/asserts/luts/smallHD/SmallHD_MovieLook_ApocalypseThisVeryMoment.cube",
+                "-o",
+                "example/asserts/out"
+            ]
+        }
+    ]
+}
