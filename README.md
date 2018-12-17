@@ -25,7 +25,7 @@ project under MIT [license][license]
 - [x] Trilinear interpolation
 - [ ] More tests
 - [ ] Documentation
-- [ ] Publish to [PUB][pub]
+- [ ] Publish to [PUB][pub-repo]
 
 ## 0.0.1
 - initial release
@@ -65,8 +65,7 @@ var image2 = Image.fromBytes(image.width, image.height, v);
 var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(image2));
 ```
 
-[pub]: https://pub.dartlang.org
 [license]: LICENSE
 [changelog]: CHANGELOG.md
-[pub-repo]: https://pub.dartlang.org/dart-lut
+[pub-repo]: https://pub.dartlang.org/dart_lut
 [github-repo]: https://github.com/NiKoTron/dart-lut
