@@ -14,15 +14,15 @@ project under MIT [license][license]
 
 - [x] Basic impl.
 - [x] Read .cube files
+- [x] Read another formats
 - [x] Store 3DLUT
 - [ ] Generate LUTs by expression
 - [ ] Verifying LUTs
-- [x] Applying LUTs
+- [x] Applying 3D LUTs
+- [ ] Applying 1D LUTs
 - [ ] Optimize perfomance
-- [ ] Rearrange lib
+- [ ] Clean up code
 - [x] Trilinear interpolation
-- [ ] Prism interpolation (?)
-- [ ] Nearest neighbour interpolation (?)
 - [ ] More tests
 - [ ] Documentation
 - [ ] Publish to [PUB][pub]
@@ -34,12 +34,39 @@ project under MIT [license][license]
 
 add dependency in pubsec.yaml
 
+from [pub.dartlang.org][pub-repo]:
+
+```yaml
+dependencies:
+  dart_lut: ^0.0.1
+```
+
+latest from [github.com][github-repo]:
+
 ```yaml
 dependencies:
   dart_lut:
       git: git://github.com/NiKoTron/dart-lut.git
 ```
 
+## Usage
+
+generic example:
+
+```dart
+var lut = LUT.fromFile(File('example.cube'));
+await lut.awaitLoading();
+
+Image image = decodeImage(imageFile.readAsBytesSync());
+
+var v = lut.applySync(image.getBytes());
+
+var image2 = Image.fromBytes(image.width, image.height, v);
+var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(image2));
+```
+
 [pub]: https://pub.dartlang.org
 [license]: LICENSE
 [changelog]: CHANGELOG.md
+[pub-repo]: https://pub.dartlang.org/dart-lut
+[github-repo]: https://github.com/NiKoTron/dart-lut

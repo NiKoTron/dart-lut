@@ -17,9 +17,9 @@
             "type": "dart",
             "args": [
                 "-i",
-                "example/asserts/ca.jpg",
+                "${workspaceFolder}/example/asserts/cc.jpg",
                 "-l",
-                "example/asserts/luts/smallHD/SmallHD_MovieLook_ApocalypseThisVeryMoment.cube",
+                "/home/NiKoTron/LUTs/FG Free Cine LUTs Pack v2/FG LUTs (Photoshop & Premiere)/FGCineDrama.cube",
                 "-o",
                 "example/asserts/out"
             ]
