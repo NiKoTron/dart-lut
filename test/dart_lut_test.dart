@@ -88,5 +88,10 @@ void main() {
       expect(l.table3D.get(0, 0, 0), isNotNull);
       expect(l.table3D.get(1, 1, 1), isNotNull);
     });
+
+    test('apply cube', (){
+      
+    });
+
   });
 }

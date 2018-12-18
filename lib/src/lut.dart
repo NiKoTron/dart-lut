@@ -220,7 +220,6 @@ class LUT {
   List<int> applySync(List<int> data,
       [InterpolationType intType = InterpolationType.trilinear]) {
     final fun = _typedFunction[intType];
-    final opaque = bpc + 1;
 
     final dKR = domainMax.r - domainMin.r;
     final dKG = domainMax.g - domainMin.g;
@@ -234,7 +233,7 @@ class LUT {
         result[i] = _toIntCh(rgb.r * dKR);
         result[i + 1] = _toIntCh(rgb.g * dKG);
         result[i + 2] = _toIntCh(rgb.b * dKB);
-        result[i + 3] = opaque;
+        result[i + 3] = bpc;
       }
     }
 
@@ -249,6 +248,26 @@ class LUT {
   Future<List<int>> apply(List<int> data, [InterpolationType intType]) async {
     return applySync(data, intType);
   }
+
+  /// This methods yields [int] output value in RGBA format
+  Stream<int> applyAsStream(List<int> data, [InterpolationType intType]) async* {
+    final fun = _typedFunction[intType];
+
+    final dKR = domainMax.r - domainMin.r;
+    final dKG = domainMax.g - domainMin.g;
+    final dKB = domainMax.b - domainMin.b;
+
+    if (data != null && data.length >= 4) {
+      for (var i = 0; i < data.length; i += 4) {
+        final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
+        
+        yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG), _toIntCh(rgb.b * dKB), bpc);
+      }
+    }
+
+  }
+
+  int _intRGBA(int r, int g, int b, int a) => a << 24 | b << 16 | g << 8 | r;
 
   double _k;
 

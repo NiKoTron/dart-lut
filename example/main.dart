@@ -12,7 +12,7 @@ void main(List<String> args) {
     ..addOption('out-dir',
         abbr: 'o', defaultsTo: './out', allowMultiple: false);
 
-  _run(parser.parse(args));
+  _runStreamed(parser.parse(args));
 }
 
 void _run(final ArgResults argResult) {
@@ -27,6 +27,7 @@ void _run(final ArgResults argResult) {
       Image image = decodeImage(imageFile.readAsBytesSync());
       final sw = Stopwatch()..start();
       var interp = InterpolationType.trilinear;
+
       var v = lut.applySync(image.getBytes(), interp);
 
       print('lut apply in ${sw.elapsed}');
@@ -37,5 +38,25 @@ void _run(final ArgResults argResult) {
         ..writeAsBytesSync(encodeJpg(image2));
       print('output image write to: ${outputFile.path}');
     });
+  }
+}
+
+
+void _runStreamed(final ArgResults argResult) async {
+  for (var img in argResult['in-img']) {
+    final imageFile = File(img);
+
+    final lutFile = File(argResult['lut-file']);
+
+    final lut = LUT.fromString(lutFile.readAsStringSync());
+
+    var isLoaded = await lut.awaitLoading();
+    if(isLoaded){
+      Image image = decodeImage(imageFile.readAsBytesSync());
+      var interp = InterpolationType.trilinear;
+      lut.applyAsStream(image.getBytes(), interp).listen((result) {
+            print('#${result.toRadixString(16).padLeft(4, '0')}');
+      });
+    };
   }
 }
