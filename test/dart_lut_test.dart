@@ -59,7 +59,7 @@ void main() {
   group('LUT tests', () {
     test('create LUT from file', () async {
       var f1 = new File('test/asserts/exmp.cube');
-      var l = LUT.fromFile(f1);
+      var l = LUT.fromString(f1.readAsStringSync());
 
       final isLoaded = await l.awaitLoading();
 

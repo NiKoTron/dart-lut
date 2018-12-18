@@ -19,9 +19,9 @@
                 "-i",
                 "${workspaceFolder}/example/asserts/cc.jpg",
                 "-l",
-                "/home/NiKoTron/LUTs/FG Free Cine LUTs Pack v2/FG LUTs (Photoshop & Premiere)/FGCineDrama.cube",
+                "${workspaceFolder}/example/asserts/luts/exmp.cube",
                 "-o",
-                "example/asserts/out"
+                "${workspaceFolder}/example/asserts/out"
             ]
         }
     ]

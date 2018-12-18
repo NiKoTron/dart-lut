@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_lut/src/interpolation.dart';
@@ -72,11 +70,6 @@ class LUT {
   /// This factory creating LUT from string
   factory LUT.fromString(String str) {
     return LUT(Stream.fromIterable(str.split('\n')));
-  }
-
-  /// This factory creating LUT from file
-  factory LUT.fromFile(File f) {
-    return LUT(f.openRead().transform(utf8.decoder).transform(LineSplitter()));
   }
 
   StreamTransformer<String, LUT> _lutTransformer;

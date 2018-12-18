@@ -1,6 +1,6 @@
 name: dart_lut
-version: 0.0.1
-description: Dart implementation of 3D Look Up Tables.
+version: 0.0.2
+description: The implementation of image processing via 3D LUT (LookUp Tables), so in familiar words - colour filters. It's written on the pure Dart language so that it can be used with Flutter, CLI and web.
 author: Nikolai Simonov <nickolay.simonov@gmail.com>
 homepage: https://github.com/NiKoTron/dart-lut
 

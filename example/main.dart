@@ -9,24 +9,25 @@ void main(List<String> args) {
   final parser = ArgParser()
     ..addOption('lut-file', abbr: 'l', allowMultiple: false)
     ..addOption('in-img', abbr: 'i', allowMultiple: true)
-    ..addOption('out-dir', abbr: 'o', defaultsTo: 'out', allowMultiple: false);
+    ..addOption('out-dir',
+        abbr: 'o', defaultsTo: './out', allowMultiple: false);
 
   _run(parser.parse(args));
 }
 
 void _run(final ArgResults argResult) {
   for (var img in argResult['in-img']) {
-    final imageFile = new File(img);
+    final imageFile = File(img);
 
-    final lutFile = new File(argResult['lut-file']);
+    final lutFile = File(argResult['lut-file']);
 
-    var l = LUT.fromFile(lutFile);
+    final lut = LUT.fromString(lutFile.readAsStringSync());
 
-    l.isLoaded.listen((data) async {
+    lut.isLoaded.listen((data) async {
       Image image = decodeImage(imageFile.readAsBytesSync());
       final sw = Stopwatch()..start();
       var interp = InterpolationType.trilinear;
-      var v = l.applySync(image.getBytes(), interp);
+      var v = lut.applySync(image.getBytes(), interp);
 
       print('lut apply in ${sw.elapsed}');
       sw.stop();
