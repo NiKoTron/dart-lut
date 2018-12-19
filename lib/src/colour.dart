@@ -1,10 +1,10 @@
 ///This class stores RGB values
-class RGB {
+class Colour {
   final double _r;
   final double _g;
   final double _b;
 
-  RGB(double this._r, double this._g, double this._b);
+  Colour(double this._r, double this._g, double this._b);
 
   /// The Red value
   double get r => _r;
@@ -31,7 +31,7 @@ class RGB {
 
   @override
   bool operator ==(Object other) {
-    if (other is RGB) {
+    if (other is Colour) {
       return this._r == other.r && this._g == other.g && this._b == other.g;
     }
     return false;

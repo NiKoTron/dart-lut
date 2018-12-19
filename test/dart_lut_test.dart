@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dart_lut/src/interpolation.dart';
 import 'package:dart_lut/src/lut.dart';
-import 'package:dart_lut/src/rgb.dart';
+import 'package:dart_lut/src/colour.dart';
 import 'package:dart_lut/src/table.dart';
 import 'package:test/test.dart';
 
@@ -32,7 +32,7 @@ void main() {
 
   group('RGB tests', () {
     test('creation test', () {
-      final rgb = RGB(0, 0.5, 1);
+      final rgb = Colour(0, 0.5, 1);
       expect(rgb.r, equals(0));
       expect(rgb.g, equals(0.5));
       expect(rgb.b, equals(1));

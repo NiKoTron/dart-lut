@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dart_lut/src/interpolation.dart';
-import 'package:dart_lut/src/rgb.dart';
+import 'package:dart_lut/src/colour.dart';
 import 'package:dart_lut/src/table.dart';
 
 /// Interpolation types
@@ -27,13 +27,13 @@ class LUT {
 
   int sizeOf3DTable = -1;
 
-  Table3D<RGB> table3D;
+  Table3D<Colour> table3D;
 
   /// The minimum domain value
-  RGB domainMin = RGB(0, 0, 0);
+  Colour domainMin = Colour(0, 0, 0);
 
   /// The maximum domain value
-  RGB domainMax = RGB(1, 1, 1);
+  Colour domainMax = Colour(1, 1, 1);
 
   /// The bits per channel
   /// Default value is [Depth.bit8]
@@ -173,11 +173,11 @@ class LUT {
     return -1;
   }
 
-  static RGB _readDomainMin(String s) {
+  static Colour _readDomainMin(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MIN);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
+        return Colour(
             double.tryParse(expInputRange.firstMatch(s).group(1)),
             double.tryParse(expInputRange.firstMatch(s).group(2)),
             double.tryParse(expInputRange.firstMatch(s).group(3)));
@@ -186,11 +186,11 @@ class LUT {
     return null;
   }
 
-  static RGB _readDomainMax(String s) {
+  static Colour _readDomainMax(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MAX);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
+        return Colour(
             double.tryParse(expInputRange.firstMatch(s).group(1)),
             double.tryParse(expInputRange.firstMatch(s).group(2)),
             double.tryParse(expInputRange.firstMatch(s).group(3)));
@@ -199,11 +199,11 @@ class LUT {
     return null;
   }
 
-  static RGB _readRGB(String s) {
+  static Colour _readRGB(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final expInputRange = RegExp(PATTERN_DATA);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
+        return Colour(
             double.tryParse(expInputRange.firstMatch(s).group(1)),
             double.tryParse(expInputRange.firstMatch(s).group(2)),
             double.tryParse(expInputRange.firstMatch(s).group(3)));
@@ -228,7 +228,7 @@ class LUT {
     final result = new List<int>(data.length);
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
+        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
 
         result[i] = _toIntCh(rgb.r * dKR);
         result[i + 1] = _toIntCh(rgb.g * dKG);
@@ -260,7 +260,7 @@ class LUT {
 
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
+        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
 
         yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG),
             _toIntCh(rgb.b * dKB), bpc);
@@ -275,7 +275,7 @@ class LUT {
   int _toIntCh(double x) => _clampToChannelSize((x * bpc).floor());
   int _clampToChannelSize(int x) => x.clamp(0, bpc).floor();
 
-  RGB _getFromRGBTrilinear(int r, int g, int b) {
+  Colour _getFromRGBTrilinear(int r, int g, int b) {
     final iR = (r * _k);
     final fR1 = iR >= sizeOf3DTable - 1
         ? _clampToChannelSize(sizeOf3DTable - 1)
@@ -312,6 +312,6 @@ class LUT {
     final bx = Interpolation.trilerp(iR, iG, iB, c000.b, c001.b, c010.b, c011.b,
         c100.b, c101.b, c110.b, c111.b, fR0, fR1, fG0, fG1, fB0, fB1);
 
-    return RGB(rx, gx, bx);
+    return Colour(rx, gx, bx);
   }
 }
