@@ -1,5 +1,7 @@
 # Dart LUT3D
 
+[![pub package][pub-badge]][pub-repo]
+
 The library for working with LUTs.
 
 ## License
@@ -14,7 +16,7 @@ project under MIT [license][license]
 
 - [x] Basic impl.
 - [x] Read .cube files
-- [x] Read another formats
+- [ ] Read another formats
 - [x] Store 3DLUT
 - [ ] Generate LUTs by expression
 - [ ] Verifying LUTs
@@ -39,7 +41,7 @@ from [pub.dartlang.org][pub-repo]:
 
 ```yaml
 dependencies:
-  dart_lut: ^0.0.2
+  dart_lut: ^0.0.3
 ```
 
 latest from [github.com][github-repo]:
@@ -59,19 +61,23 @@ import 'dart:io';
 
 import 'package:image/image.dart';
 import 'package:dart_lut/src/lut.dart';
+```
+```dart
+final lut = LUT.fromString(File('example.cube').readAsStringSync());
+await lut.awaitLoading();
 
-//~~~~~~~
+Image image = decodeImage(imageFile.readAsBytesSync());
 
-  final lut = LUT.fromString(File('example.cube').readAsStringSync());
-  await lut.awaitLoading();
+var lutedBytes = lut.applySync(image.getBytes());
 
-  Image image = decodeImage(imageFile.readAsBytesSync());
+var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
+var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
+```
 
-  var lutedBytes = lut.applySync(image.getBytes());
-
-  var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
-  var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
-  
+```dart
+lut.applyAsStream(image.getBytes()).listen((result) {
+  print('#${result.toRadixString(16).padLeft(4, '0')}'); //print ARGB value after applying LUT in HEX format
+});
 ```
 
 ## Sample results
@@ -87,6 +93,7 @@ import 'package:dart_lut/src/lut.dart';
 [license]: LICENSE
 [changelog]: CHANGELOG.md
 [pub-repo]: https://pub.dartlang.org/packages/dart_lut
+[pub-badge]: https://img.shields.io/pub/v/dart_lut.svg
 [github-repo]: https://github.com/NiKoTron/dart-lut
 
 [caique-silva-preview]: img/caique-silva-merge-small.jpg "Photo by Caique Silva on Unsplash"

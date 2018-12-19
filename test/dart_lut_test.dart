@@ -89,9 +89,6 @@ void main() {
       expect(l.table3D.get(1, 1, 1), isNotNull);
     });
 
-    test('apply cube', (){
-      
-    });
-
+    test('apply cube', () {});
   });
 }

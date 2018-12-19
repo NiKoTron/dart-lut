@@ -11,7 +11,7 @@ enum InterpolationType {
   trilinear
 }
 
-/// The files contais constants 2^n -1 bit
+/// The files contais constants (2^n)-1
 class Depth {
   static const int bit8 = 255;
   static const int bit10 = 1023;
@@ -35,7 +35,7 @@ class LUT {
   /// The maximum domain value
   RGB domainMax = RGB(1, 1, 1);
 
-  /// The bits per channel -1
+  /// The bits per channel
   /// Default value is [Depth.bit8]
   int bpc = Depth.bit8;
 
@@ -250,7 +250,8 @@ class LUT {
   }
 
   /// This methods yields [int] output value in RGBA format
-  Stream<int> applyAsStream(List<int> data, [InterpolationType intType]) async* {
+  Stream<int> applyAsStream(List<int> data,
+      [InterpolationType intType]) async* {
     final fun = _typedFunction[intType];
 
     final dKR = domainMax.r - domainMin.r;
@@ -260,11 +261,11 @@ class LUT {
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
         final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
-        
-        yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG), _toIntCh(rgb.b * dKB), bpc);
+
+        yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG),
+            _toIntCh(rgb.b * dKB), bpc);
       }
     }
-
   }
 
   int _intRGBA(int r, int g, int b, int a) => a << 24 | b << 16 | g << 8 | r;
