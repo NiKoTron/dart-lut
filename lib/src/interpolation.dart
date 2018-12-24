@@ -1,9 +1,15 @@
+/// The utilitary class with some interpolation methods
+/// Linear interpolation [lerp]
+/// Bilinear interpolation [bilerp]
+/// Trilinear interpolation [trilerp]
 class Interpolation {
+  /// The linear interpolation
   static double lerp(num x, num x0, num x1, num y0, num y1) =>
       ((x1 - x0) == 0.0)
           ? (y0 + (y1 - y0) / 2.0).toDouble()
           : (y0 + (x - x0) * (y1 - y0) / (x1 - x0)).toDouble();
 
+  /// The linear interpolation in 2D space
   static double bilerp(num x, num y, num q00, num q01, num q10, num q11, num x0,
       num x1, num y0, num y1) {
     final r1 = ((x1 - x) / (x1 - x0)) * q00 + ((x - x0) / (x1 - x0)) * q10;
@@ -14,6 +20,7 @@ class Interpolation {
     return p.toDouble();
   }
 
+  /// The linear interpolation in 3D space example usage in [LUT._getFromRGBTrilinear]
   static double trilerp(
       num x,
       num y,

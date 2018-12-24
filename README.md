@@ -27,7 +27,7 @@ project under MIT [license][license]
 - [ ] Documentation
 - [x] Publish to [PUB][pub-repo]
 
-## 0.0.2
+## 0.0.4
 
 - remove .fromFile(File f) factory
 
@@ -39,7 +39,7 @@ from [pub.dartlang.org][pub-repo]:
 
 ```yaml
 dependencies:
-  dart_lut: ^0.0.3
+  dart_lut: ^0.0.4
 ```
 
 latest from [github.com][github-repo]:
@@ -60,16 +60,19 @@ import 'dart:io';
 import 'package:image/image.dart';
 import 'package:dart_lut/src/lut.dart';
 ```
+
 ```dart
 final lut = LUT.fromString(File('example.cube').readAsStringSync());
-await lut.awaitLoading();
+final isLoaded = await lut.awaitLoading().timeout(Duration(milliseconds: 1500), onTimeout: ()=>false);
 
-Image image = decodeImage(imageFile.readAsBytesSync());
+if(isLoaded){
+  Image image = decodeImage(imageFile.readAsBytesSync());
 
-var lutedBytes = lut.applySync(image.getBytes());
+  var lutedBytes = lut.applySync(image.getBytes());
 
-var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
-var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
+  var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
+  var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
+}
 ```
 
 ```dart

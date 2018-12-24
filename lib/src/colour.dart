@@ -1,10 +1,16 @@
-///This class stores RGB values
+import 'package:meta/meta.dart';
+
+/// This class stores RGB values
+@immutable
 class Colour {
   final double _r;
   final double _g;
   final double _b;
 
-  Colour(double this._r, double this._g, double this._b);
+  const Colour(double this._r, double this._g, double this._b)
+      : assert(_r != null),
+        assert(_g != null),
+        assert(_b != null);
 
   /// The Red value
   double get r => _r;

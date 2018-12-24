@@ -12,7 +12,7 @@ void main(List<String> args) {
     ..addOption('out-dir',
         abbr: 'o', defaultsTo: './out', allowMultiple: false);
 
-  _runStreamed(parser.parse(args));
+  _run(parser.parse(args));
 }
 
 void _run(final ArgResults argResult) {
@@ -41,7 +41,6 @@ void _run(final ArgResults argResult) {
   }
 }
 
-
 void _runStreamed(final ArgResults argResult) async {
   for (var img in argResult['in-img']) {
     final imageFile = File(img);
@@ -51,12 +50,13 @@ void _runStreamed(final ArgResults argResult) async {
     final lut = LUT.fromString(lutFile.readAsStringSync());
 
     var isLoaded = await lut.awaitLoading();
-    if(isLoaded){
+    if (isLoaded) {
       Image image = decodeImage(imageFile.readAsBytesSync());
       var interp = InterpolationType.trilinear;
       lut.applyAsStream(image.getBytes(), interp).listen((result) {
-            print('#${result.toRadixString(16).padLeft(4, '0')}');
+        //print('#${result.toRadixString(16).padLeft(4, '0')}');
       });
-    };
+    }
+    ;
   }
 }
