@@ -41,24 +41,33 @@ class LUT {
 
   final Stream<String> _stream;
 
-  final StreamController<bool> _isLoadedStreamController = StreamController<bool>.broadcast();
+  final StreamController<bool> _isLoadedStreamController =
+      StreamController<bool>.broadcast();
 
   Stream<bool> get isLoaded => _isLoadedStreamController.stream;
 
-  bool _isLoaded = false; 
+  bool _isLoaded = false;
 
   Future<bool> awaitLoading() async {
-    final cmpltr = Completer<bool>();
     if (_isLoadedStreamController.isClosed) {
-      cmpltr.complete(_isLoaded);
-    } else {
-      isLoaded.listen((data) {
-        _isLoaded = data;
-        cmpltr.complete(_isLoaded);
-        _isLoadedStreamController.close();
-      }, onError: cmpltr.completeError);
+      return _isLoaded;
     }
-    return cmpltr.future;
+    FormatException ex;
+    try {
+      await for (bool val in isLoaded) {
+        _isLoaded = val;
+        break;
+      }
+    } on FormatException catch (e) {
+      ex = e;
+    } finally {
+      _isLoadedStreamController.sink.close();
+      if (ex != null) {
+        throw ex;
+      }
+    }
+
+    return _isLoaded;
   }
 
   final Map<InterpolationType, Function> _typedFunction = new Map();
@@ -68,8 +77,14 @@ class LUT {
 
     _lutTransformer = StreamTransformer<String, LUT>(_onStringStreamListen);
 
-    _stream.transform(_lutTransformer).listen(null);
-    isLoaded.listen((v) => _isLoaded = v);
+    _stream
+        .transform(_lutTransformer)
+        .listen(null)
+        .onError(_isLoadedStreamController.addError);
+
+    isLoaded.listen((v) => _isLoaded = v,
+        onError: (Object e) => _isLoaded = false,
+        onDone: () => _isLoadedStreamController.close());
   }
 
   /// This factory creating LUT from string
@@ -98,47 +113,54 @@ class LUT {
           subscription.cancel();
         },
         sync: true);
-
+    var hasErrors = false;
     subscription = _stream.listen(
         (s) {
-          if (sizeOf3DTable <= 0) {
-            if (title == null || title.isEmpty) {
-              title = _readTitle(s);
-            }
-            if (sizeOf3DTable < 0) {
-              sizeOf3DTable = _read3DLUTSize(s);
-              if (sizeOf3DTable >= 2) {
-                _k = (sizeOf3DTable - 1) / bpc;
-                table3D = new Table3D(sizeOf3DTable);
+          try {
+            if (sizeOf3DTable <= 0) {
+              if (title == null || title.isEmpty) {
+                title = _readTitle(s);
               }
-            }
-            if (domainMin == null) {
-              domainMin = _readDomainMin(s);
-            }
-            if (domainMax == null) {
-              domainMax = _readDomainMax(s);
-            }
-          } else {
-            final rgb = _readRGB(s);
-            if (rgb != null) {
-              table3D.set(x, y, z, rgb);
+              if (sizeOf3DTable < 0) {
+                sizeOf3DTable = _read3DLUTSize(s);
+                if (sizeOf3DTable >= 2) {
+                  _k = (sizeOf3DTable - 1) / bpc;
+                  table3D = new Table3D(sizeOf3DTable);
+                }
+              }
+              if (domainMin == null) {
+                domainMin = _readDomainMin(s);
+              }
+              if (domainMax == null) {
+                domainMax = _readDomainMax(s);
+              }
+            } else {
+              final rgb = _readRGB(s);
+              if (rgb != null) {
+                table3D.set(x, y, z, rgb);
 
-              x++;
-              if (x == sizeOf3DTable) {
-                x = 0;
-                y++;
-              }
-              if (y == sizeOf3DTable) {
-                y = 0;
-                z++;
+                x++;
+                if (x == sizeOf3DTable) {
+                  x = 0;
+                  y++;
+                }
+                if (y == sizeOf3DTable) {
+                  y = 0;
+                  z++;
+                }
               }
             }
+          } catch (e) {
+            hasErrors = true;
+            controller.addError(e);
           }
         },
         onError: controller.addError,
         onDone: () {
           controller.close();
-          _isLoadedStreamController.sink.add(true);
+          if (!_isLoadedStreamController.isClosed) {
+            _isLoadedStreamController.sink.add(!hasErrors);
+          }
         },
         cancelOnError: true);
 

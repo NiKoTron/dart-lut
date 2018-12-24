@@ -91,18 +91,12 @@ void main() {
       expect(l.table3D.get(1, 1, 1), isNotNull);
     });
 
-    void thrower(){
-      throw Exception('lolka');
-    }
-
     test('fail LUT creating wrong size', () async {
       final data =
-          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n4.0 0swsgr.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n4.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
       final l = LUT.fromString(data);
-     // await l.awaitLoading();
-    expect(await l.awaitLoading(), throwsFormatException);
-     expect(() => thrower(), throwsFormatException);
-    
+
+      expect(l.awaitLoading(), throwsFormatException);
     });
 
     test('apply cube', () {});

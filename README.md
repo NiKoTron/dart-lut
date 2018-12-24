@@ -17,7 +17,7 @@ project under MIT [license][license]
 - [ ] Read another formats
 - [x] Store 3DLUT
 - [ ] Generate LUTs by expression
-- [ ] Verifying LUTs
+- [x] Verifying LUTs
 - [x] Applying 3D LUTs
 - [ ] Applying 1D LUTs
 - [ ] Optimize perfomance
