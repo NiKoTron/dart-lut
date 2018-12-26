@@ -21,15 +21,19 @@ project under MIT [license][license]
 - [x] Applying 3D LUTs
 - [ ] Applying 1D LUTs
 - [ ] Optimize perfomance
-- [ ] Clean up code
 - [x] Trilinear interpolation
-- [ ] More tests
+- [x] More tests
 - [ ] Documentation
 - [x] Publish to [PUB][pub-repo]
+- [ ] Remove task list
 
 ## 0.0.4
 
-- remove .fromFile(File f) factory
+- more tests
+- fixed wrong equalification of Colour class
+- error handling while parsing LUT
+- added travis integration
+- some minor changes
 
 ## Instalation
 
@@ -63,11 +67,12 @@ import 'package:dart_lut/src/lut.dart';
 
 ```dart
 final lut = LUT.fromString(File('example.cube').readAsStringSync());
-final isLoaded = await lut.awaitLoading().timeout(Duration(milliseconds: 1500), onTimeout: ()=>false);
+final isLoaded = await lut
+    .awaitLoading()
+    .timeout(Duration(milliseconds: 1500), onTimeout: () => false);
 
-if(isLoaded){
-  Image image = decodeImage(imageFile.readAsBytesSync());
-
+if (isLoaded) {
+  final image = decodeImage(imageFile.readAsBytesSync());
   var lutedBytes = lut.applySync(image.getBytes());
 
   var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
