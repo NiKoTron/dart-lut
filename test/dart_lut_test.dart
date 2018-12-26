@@ -77,7 +77,7 @@ void main() {
 
     test('create LUT from string', () async {
       final data =
-          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n0.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 1.0 2.0 3.0\nDOMAIN_MAX 4.0 5.0 6.0\n\nLUT_3D_SIZE 2\n\n0.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
       final l = LUT.fromString(data);
 
       final isLoaded = await l.awaitLoading();
@@ -89,16 +89,74 @@ void main() {
       expect(l.title, equals('example'));
       expect(l.table3D.get(0, 0, 0), isNotNull);
       expect(l.table3D.get(1, 1, 1), isNotNull);
+      expect(l.domainMax, equals(const Colour(4, 5, 6)));
+      expect(l.domainMin, equals(const Colour(1, 2, 3)));
     });
 
     test('fail LUT creating wrong size', () async {
       final data =
-          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n4.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE f2feg\n\n1.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
       final l = LUT.fromString(data);
 
-      expect(l.awaitLoading(), throwsFormatException);
+      final result = await l.awaitLoading();
+      expect(result, equals(false));
     });
 
-    test('apply cube', () {});
+    test('fail LUT creating wrong domain', () async {
+      final data =
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX g.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n1.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0.75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+      final l = LUT.fromString(data);
+
+      final result = await l.awaitLoading();
+      expect(result, equals(false));
+    });
+
+    test('fail LUT creating wrong data', () async {
+      final data =
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n1.0 0.0 0.0\n1.0 0.0 0.0\n0.0 0asf75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+      final l = LUT.fromString(data);
+
+      final result = await l.awaitLoading();
+      expect(result, equals(false));
+    });
+
+    test('fail LUT creating data bigger than domain max', () async {
+      final data =
+          '# {r,(3*g+b)/4.0,b}\nTITLE example\nDOMAIN_MIN 0.0 0.0 0.0\nDOMAIN_MAX 1.0 1.0 1.0\n\nLUT_3D_SIZE 2\n\n4.0 0.0 0.0\n1.0 0.0 0.0\n0.0 75 0.0\n1.0 0.75 0.0\n0.0 0.25 1.0\n1.0 0.25 1.0\n0.0 1.0 1.0\n1.0 1.0 1.0\n';
+      final l = LUT.fromString(data);
+
+      final result = await l.awaitLoading();
+      expect(result, equals(false));
+    });
+
+    test('apply linear cube', () async {
+      final dataLinear =
+          'TITLE "linear cubi cube"\n\nLUT_3D_SIZE 3\n\n0.0 0.0 0.0\n0.5 0.0 0.0\n1.0 0.0 0.0\n\n0.0 0.5 0.0\n0.5 0.5 0.0\n1.0 0.5 0.0\n\n0.0 1.0 0.0\n0.5 1.0 0.0\n1.0 1.0 0.0\n\n#\n\n0.0 0.0 0.5\n0.5 0.0 0.5\n1.0 0.0 0.5\n\n0.0 0.5 0.5\n0.5 0.5 0.5\n1.0 0.5 0.5\n\n0.0 1.0 0.5\n0.5 1.0 0.5\n1.0 1.0 0.5\n\n#\n\n0.0 0.0 1.0\n0.5 0.0 1.0\n1.0 0.0 1.0\n\n0.0 0.5 1.0\n0.5 0.5 1.0\n1.0 0.5 1.0\n\n0.0 1.0 1.0\n0.5 1.0 1.0\n1.0 1.0 1.0\n';
+      final l = LUT.fromString(dataLinear);
+      await l.awaitLoading();
+
+      final bb = [
+        0xff,
+        0xee,
+        0x00,
+        0xff,
+        0xff,
+        0xee,
+        0x00,
+        0xff,
+        0xff,
+        0xee,
+        0x00,
+        0xff,
+        0xff,
+        0xee,
+        0x00,
+        0xff
+      ];
+
+      final ll = l.applySync(bb);
+
+      expect(ll, equals(bb));
+    });
   });
 }

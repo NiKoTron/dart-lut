@@ -1,8 +1,5 @@
-import 'package:meta/meta.dart';
-
 /// This class stores RGB values
-@immutable
-class Colour {
+class Colour{
   final double _r;
   final double _g;
   final double _b;
@@ -38,8 +35,10 @@ class Colour {
   @override
   bool operator ==(Object other) {
     if (other is Colour) {
-      return this._r == other.r && this._g == other.g && this._b == other.g;
+      return this._r == other.r && this._g == other.g && this._b == other.b;
     }
     return false;
   }
+
+
 }
