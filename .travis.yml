@@ -1,0 +1,28 @@
+language: dart
+dart:
+  - dev
+
+# Build stages: https://docs.travis-ci.com/user/build-stages/.
+stages:
+  - analyze_and_format
+  - testing
+  - prepub
+
+jobs:
+  include:
+    - stage: analyze_and_format
+      script: ./tool/travis/swag.sh
+
+    - stage: testing
+      script: pub run test
+    
+    - stage: prepub
+      script: pub publish --dry-run
+
+branches:
+  only: [master, /feature\..*/]
+
+# Incremental pub cache and builds.
+cache:
+  directories:
+    - $HOME/.pub-cache

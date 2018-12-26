@@ -19,7 +19,7 @@
                 "-i",
                 "${workspaceFolder}/example/asserts/cc.jpg",
                 "-l",
-                "${workspaceFolder}/example/asserts/luts/exmp.cube",
+                "${workspaceFolder}/example/asserts/luts/bad_cube.cube",
                 "-o",
                 "${workspaceFolder}/example/asserts/out"
             ]

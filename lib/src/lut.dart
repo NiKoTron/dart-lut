@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dart_lut/src/interpolation.dart';
-import 'package:dart_lut/src/rgb.dart';
+import 'package:dart_lut/src/colour.dart';
 import 'package:dart_lut/src/table.dart';
 
 /// Interpolation types
@@ -27,13 +27,13 @@ class LUT {
 
   int sizeOf3DTable = -1;
 
-  Table3D<RGB> table3D;
+  Table3D<Colour> table3D;
 
   /// The minimum domain value
-  RGB domainMin = RGB(0, 0, 0);
+  Colour domainMin;
 
   /// The maximum domain value
-  RGB domainMax = RGB(1, 1, 1);
+  Colour domainMax;
 
   /// The bits per channel
   /// Default value is [Depth.bit8]
@@ -41,35 +41,49 @@ class LUT {
 
   final Stream<String> _stream;
 
-  final StreamController<bool> _isLoaded = StreamController<bool>.broadcast();
+  final StreamController<bool> _isLoadedStreamController =
+      StreamController<bool>.broadcast();
 
-  Stream<bool> get isLoaded => _isLoaded.stream;
+  Stream<bool> get isLoaded => _isLoadedStreamController.stream;
+
+  bool _isLoaded = false;
 
   Future<bool> awaitLoading() async {
-    var r = _isLoaded.isClosed;
-    await for (bool isL in isLoaded) {
-      r = isL;
-      if (r == true) {
+    if (_isLoadedStreamController.isClosed) {
+      return _isLoaded;
+    }
+    try {
+      await for (bool val in isLoaded) {
+        _isLoaded = val;
         break;
       }
+    } on FormatException {
+      _isLoaded = false;
     }
-    _isLoaded.close();
-    return r;
+
+    return _isLoaded;
   }
 
   final Map<InterpolationType, Function> _typedFunction = new Map();
 
-  LUT(this._stream) {
+  LUT._(this._stream) {
     _typedFunction[InterpolationType.trilinear] = _getFromRGBTrilinear;
 
     _lutTransformer = StreamTransformer<String, LUT>(_onStringStreamListen);
 
-    _stream.transform(_lutTransformer).listen(null);
+    _stream
+        .transform(_lutTransformer)
+        .listen(null)
+        .onError(_isLoadedStreamController.sink.addError);
+
+    isLoaded.listen((v) => _isLoaded = v,
+        onError: (Object e) => _isLoaded = false,
+        onDone: () => _isLoadedStreamController.close());
   }
 
   /// This factory creating LUT from string
   factory LUT.fromString(String str) {
-    return LUT(Stream.fromIterable(str.split('\n')));
+    return LUT._(Stream.fromIterable(str.split('\n')));
   }
 
   StreamTransformer<String, LUT> _lutTransformer;
@@ -89,49 +103,60 @@ class LUT {
         onResume: () {
           subscription.resume();
         },
-        onCancel: () => subscription.cancel(),
+        onCancel: () {
+          subscription.cancel();
+        },
         sync: true);
-
+    var hasErrors = false;
     subscription = _stream.listen(
         (s) {
-          if (sizeOf3DTable <= 0) {
-            if (title == null || title.isEmpty) {
-              title = _readTitle(s);
-            }
-            if (sizeOf3DTable < 0) {
-              sizeOf3DTable = _read3DLUTSize(s);
-              if (sizeOf3DTable >= 2) {
-                _k = (sizeOf3DTable - 1) / bpc;
-                table3D = new Table3D(sizeOf3DTable);
+          try {
+            if (sizeOf3DTable <= 0) {
+              if (title == null || title.isEmpty) {
+                title = _readTitle(s);
               }
-            }
-            if (domainMin == null) {
-              domainMin = _readDomainMin(s);
-            }
-            if (domainMax == null) {
-              domainMax = _readDomainMax(s);
-            }
-          } else {
-            final rgb = _readRGB(s);
-            if (rgb != null) {
-              table3D.set(x, y, z, rgb);
+              if (sizeOf3DTable < 0) {
+                sizeOf3DTable = _read3DLUTSize(s);
+                if (sizeOf3DTable >= 2) {
+                  _k = (sizeOf3DTable - 1) / bpc;
+                  table3D = new Table3D(sizeOf3DTable);
+                }
+              }
+              domainMin ??= _readDomainMin(s);
+              domainMax ??= _readDomainMax(s);
+            } else {
+              final rgb = _readRGB(s);
+              if (rgb != null) {
+                table3D.set(x, y, z, rgb);
 
-              x++;
-              if (x == sizeOf3DTable) {
-                x = 0;
-                y++;
-              }
-              if (y == sizeOf3DTable) {
-                y = 0;
-                z++;
+                x++;
+                if (x == sizeOf3DTable) {
+                  x = 0;
+                  y++;
+                }
+                if (y == sizeOf3DTable) {
+                  y = 0;
+                  z++;
+                }
               }
             }
+          } on FormatException catch (e) {
+            hasErrors = true;
+            controller.addError(e);
           }
         },
         onError: controller.addError,
         onDone: () {
           controller.close();
-          _isLoaded.sink.add(true);
+          if (!_isLoadedStreamController.isClosed) {
+            domainMin ??= Colour(0, 0, 0);
+            domainMax ??= Colour(1, 1, 1);
+            _isLoadedStreamController.sink.add(!hasErrors &&
+                sizeOf3DTable >= 2 &&
+                table3D != null &&
+                table3D.size == sizeOf3DTable);
+            _isLoadedStreamController.close();
+          }
         },
         cancelOnError: true);
 
@@ -139,14 +164,20 @@ class LUT {
   }
 
   static final String PARSE_COMMENT_LINE = '#';
-  static final String PATTERN_LUT_3D_SIZE = r'^LUT_3D_SIZE\s+(\d+)';
-  static final String PATTERN_LUT_3D_INPUT_RANGE =
-      r'^LUT_3D_INPUT_RANGE\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
 
-  static final String PATTERN_DOMAIN_MIN =
-      r'^DOMAIN_MIN\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
-  static final String PATTERN_DOMAIN_MAX =
-      r'^DOMAIN_MAX\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
+  static final String HEADER_LUT_3D_SIZE = 'LUT_3D_SIZE';
+  static final String PATTERN_LUT_3D_SIZE =
+      r'^' + HEADER_LUT_3D_SIZE + r'\s+(\d+)';
+
+  static final String HEADER_DOMAIN_MIN = 'DOMAIN_MIN';
+  static final String PATTERN_DOMAIN_MIN = r'^' +
+      HEADER_DOMAIN_MIN +
+      r'\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
+
+  static final String HEADER_DOMAIN_MAX = 'DOMAIN_MAX';
+  static final String PATTERN_DOMAIN_MAX = r'^' +
+      HEADER_DOMAIN_MAX +
+      r'\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
 
   static final String PATTERN_DATA =
       r'^(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
@@ -164,52 +195,87 @@ class LUT {
   }
 
   static int _read3DLUTSize(String s) {
-    if (!s.startsWith(PARSE_COMMENT_LINE)) {
+    if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_LUT_3D_SIZE)) {
       final exp = RegExp(PATTERN_LUT_3D_SIZE);
       if (exp.hasMatch(s)) {
-        return int.tryParse(exp.firstMatch(s).group(1));
+        final size = int.tryParse(exp.firstMatch(s).group(1));
+        if (size == null) {
+          throw FormatException('Size can`t parse to integer value: "$s"');
+        }
+        return size;
+      } else {
+        throw FormatException('Wrong value: "$s"');
       }
     }
     return -1;
   }
 
-  static RGB _readDomainMin(String s) {
-    if (!s.startsWith(PARSE_COMMENT_LINE)) {
+  static Colour _readDomainMin(String s) {
+    if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_DOMAIN_MIN)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MIN);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
-            double.tryParse(expInputRange.firstMatch(s).group(1)),
-            double.tryParse(expInputRange.firstMatch(s).group(2)),
-            double.tryParse(expInputRange.firstMatch(s).group(3)));
+        final r = _validateAndParse(expInputRange.firstMatch(s).group(1));
+        final g = _validateAndParse(expInputRange.firstMatch(s).group(2));
+        final b = _validateAndParse(expInputRange.firstMatch(s).group(3));
+
+        return Colour(r, g, b);
+      } else {
+        throw FormatException('Wrong value: "$s"');
       }
     }
     return null;
   }
 
-  static RGB _readDomainMax(String s) {
-    if (!s.startsWith(PARSE_COMMENT_LINE)) {
+  static Colour _readDomainMax(String s) {
+    if (!s.startsWith(PARSE_COMMENT_LINE) && s.startsWith(HEADER_DOMAIN_MAX)) {
       final expInputRange = RegExp(PATTERN_DOMAIN_MAX);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
-            double.tryParse(expInputRange.firstMatch(s).group(1)),
-            double.tryParse(expInputRange.firstMatch(s).group(2)),
-            double.tryParse(expInputRange.firstMatch(s).group(3)));
+        final r = _validateAndParse(expInputRange.firstMatch(s).group(1));
+        final g = _validateAndParse(expInputRange.firstMatch(s).group(2));
+        final b = _validateAndParse(expInputRange.firstMatch(s).group(3));
+
+        return Colour(r, g, b);
+      } else {
+        throw FormatException('Wrong value: "$s"');
       }
     }
     return null;
   }
 
-  static RGB _readRGB(String s) {
+  static Colour _readRGB(String s,
+      [Colour domainMin = const Colour(0, 0, 0),
+      Colour domainMax = const Colour(1, 1, 1)]) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
       final expInputRange = RegExp(PATTERN_DATA);
       if (expInputRange.hasMatch(s)) {
-        return RGB(
-            double.tryParse(expInputRange.firstMatch(s).group(1)),
-            double.tryParse(expInputRange.firstMatch(s).group(2)),
-            double.tryParse(expInputRange.firstMatch(s).group(3)));
+        final r = _validateAndParse(
+            expInputRange.firstMatch(s).group(1), domainMin.r, domainMax.r);
+        final g = _validateAndParse(
+            expInputRange.firstMatch(s).group(2), domainMin.g, domainMax.g);
+        final b = _validateAndParse(
+            expInputRange.firstMatch(s).group(3), domainMin.b, domainMax.b);
+
+        return Colour(r, g, b);
+      } else if (s.isNotEmpty) {
+        throw FormatException('Wrong format of input data: "$s"');
       }
     }
     return null;
+  }
+
+  static double _validateAndParse(String s, [double min, double max]) {
+    if (s == null || s.isEmpty) {
+      throw FormatException('Input data shouldn`t be empty or null: "$s"');
+    }
+    final value = double.tryParse(s);
+    if (value == null) {
+      throw FormatException('Input data can`t parsed as a double value: "$s"');
+    }
+    if ((min != null && max != null) && (value < min || value > max)) {
+      throw FormatException(
+          'Input data not in range: [$min <= $value <= $max]');
+    }
+    return value;
   }
 
   /// Apply LUT transformation for bitmap array synchroniously
@@ -228,7 +294,7 @@ class LUT {
     final result = new List<int>(data.length);
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
+        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
 
         result[i] = _toIntCh(rgb.r * dKR);
         result[i + 1] = _toIntCh(rgb.g * dKG);
@@ -260,7 +326,7 @@ class LUT {
 
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final RGB rgb = fun(data[i], data[i + 1], data[i + 2]);
+        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
 
         yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG),
             _toIntCh(rgb.b * dKB), bpc);
@@ -270,12 +336,13 @@ class LUT {
 
   int _intRGBA(int r, int g, int b, int a) => a << 24 | b << 16 | g << 8 | r;
 
+  // The depth coefficient - (sizeOf3DTable - 1) / bitPerChannel
   double _k;
 
   int _toIntCh(double x) => _clampToChannelSize((x * bpc).floor());
   int _clampToChannelSize(int x) => x.clamp(0, bpc).floor();
 
-  RGB _getFromRGBTrilinear(int r, int g, int b) {
+  Colour _getFromRGBTrilinear(int r, int g, int b) {
     final iR = (r * _k);
     final fR1 = iR >= sizeOf3DTable - 1
         ? _clampToChannelSize(sizeOf3DTable - 1)
@@ -312,6 +379,6 @@ class LUT {
     final bx = Interpolation.trilerp(iR, iG, iB, c000.b, c001.b, c010.b, c011.b,
         c100.b, c101.b, c110.b, c111.b, fR0, fR1, fG0, fG1, fB0, fB1);
 
-    return RGB(rx, gx, bx);
+    return Colour(rx, gx, bx);
   }
 }

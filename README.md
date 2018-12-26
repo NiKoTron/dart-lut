@@ -19,19 +19,23 @@ project under MIT [license][license]
 - [ ] Read another formats
 - [x] Store 3DLUT
 - [ ] Generate LUTs by expression
-- [ ] Verifying LUTs
+- [x] Verifying LUTs
 - [x] Applying 3D LUTs
 - [ ] Applying 1D LUTs
 - [ ] Optimize perfomance
-- [ ] Clean up code
 - [x] Trilinear interpolation
-- [ ] More tests
+- [x] More tests
 - [ ] Documentation
 - [x] Publish to [PUB][pub-repo]
+- [ ] Remove task list
 
-## 0.0.2
+## 0.0.4
 
-- remove .fromFile(File f) factory
+- more tests
+- fixed wrong equalification of Colour class
+- error handling while parsing LUT
+- added travis integration
+- some minor changes
 
 ## Instalation
 
@@ -41,7 +45,7 @@ from [pub.dartlang.org][pub-repo]:
 
 ```yaml
 dependencies:
-  dart_lut: ^0.0.3
+  dart_lut: ^0.0.4
 ```
 
 latest from [github.com][github-repo]:
@@ -62,16 +66,20 @@ import 'dart:io';
 import 'package:image/image.dart';
 import 'package:dart_lut/src/lut.dart';
 ```
+
 ```dart
 final lut = LUT.fromString(File('example.cube').readAsStringSync());
-await lut.awaitLoading();
+final isLoaded = await lut
+    .awaitLoading()
+    .timeout(Duration(milliseconds: 1500), onTimeout: () => false);
 
-Image image = decodeImage(imageFile.readAsBytesSync());
+if (isLoaded) {
+  final image = decodeImage(imageFile.readAsBytesSync());
+  var lutedBytes = lut.applySync(image.getBytes());
 
-var lutedBytes = lut.applySync(image.getBytes());
-
-var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
-var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
+  var imageLUT = Image.fromBytes(image.width, image.height, lutedBytes);
+  var outputFile = File('out.jpg')..writeAsBytesSync(encodeJpg(imageLUT));
+}
 ```
 
 ```dart

@@ -7,3 +7,15 @@
 ## 0.0.2
 
 - remove .fromFile(File f) factory
+
+## 0.0.3
+
+- added stream output
+
+## 0.0.4
+
+- more tests
+- fixed wrong equalification of Colour class
+- error handling while parsing LUT
+- added travis integration
+- some minor changes

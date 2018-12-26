@@ -6,6 +6,7 @@ analyzer:
   exclude:
     - example/**
     - test/**
+    - tool/**
 
 # Lint rules and documentation, see http://dart-lang.github.io/linter/lints
 linter:
