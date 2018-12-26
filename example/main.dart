@@ -56,6 +56,5 @@ void _runStreamed(final ArgResults argResult) async {
         //print('#${result.toRadixString(16).padLeft(4, '0')}');
       });
     }
-    ;
   }
 }
