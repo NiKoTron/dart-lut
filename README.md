@@ -1,6 +1,6 @@
 # Dart LUT3D
 
-[![pub package][pub-badge]][pub-repo]
+[![pub package][pub-badge]][pub-repo] [![Build Status][travis-badge]][travis-ci]
 
 The library for working with LUTs.
 
@@ -100,8 +100,13 @@ lut.applyAsStream(image.getBytes()).listen((result) {
 
 [license]: LICENSE
 [changelog]: CHANGELOG.md
+
 [pub-repo]: https://pub.dartlang.org/packages/dart_lut
 [pub-badge]: https://img.shields.io/pub/v/dart_lut.svg
+
+[travis-ci]: https://travis-ci.org/NiKoTron/dart-lut
+[travis-badge]: https://travis-ci.org/NiKoTron/dart-lut.svg?branch=master
+
 [github-repo]: https://github.com/NiKoTron/dart-lut
 
 [caique-silva-preview]: img/caique-silva-merge-small.jpg "Photo by Caique Silva on Unsplash"
