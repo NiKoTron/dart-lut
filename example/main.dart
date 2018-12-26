@@ -9,8 +9,7 @@ void main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('lut-file', abbr: 'l')
     ..addOption('in-img', abbr: 'i')
-    ..addOption('out-dir',
-        abbr: 'o', defaultsTo: './out');
+    ..addOption('out-dir', abbr: 'o', defaultsTo: './out');
 
   _run(parser.parse(args));
 }

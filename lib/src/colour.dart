@@ -1,5 +1,5 @@
 /// This class stores RGB values
-class Colour{
+class Colour {
   final double _r;
   final double _g;
   final double _b;
@@ -39,6 +39,4 @@ class Colour{
     }
     return false;
   }
-
-
 }
