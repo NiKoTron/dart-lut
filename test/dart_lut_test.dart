@@ -57,9 +57,47 @@ void main() {
   });
 
   group('LUT tests', () {
+    test('create linear LUT', () {
+      final tbl = [
+        Colour(0.0, 0.0, 0.0),
+        Colour(0.5, 0.0, 0.0),
+        Colour(1.0, 0.0, 0.0),
+        Colour(0.0, 0.5, 0.0),
+        Colour(0.5, 0.5, 0.0),
+        Colour(1.0, 0.5, 0.0),
+        Colour(0.0, 1.0, 0.0),
+        Colour(0.5, 1.0, 0.0),
+        Colour(1.0, 1.0, 0.0),
+        Colour(0.0, 0.0, 0.5),
+        Colour(0.5, 0.0, 0.5),
+        Colour(1.0, 0.0, 0.5),
+        Colour(0.0, 0.5, 0.5),
+        Colour(0.5, 0.5, 0.5),
+        Colour(1.0, 0.5, 0.5),
+        Colour(0.0, 1.0, 0.5),
+        Colour(0.5, 1.0, 0.5),
+        Colour(1.0, 1.0, 0.5),
+        Colour(0.0, 0.0, 1.0),
+        Colour(0.5, 0.0, 1.0),
+        Colour(1.0, 0.0, 1.0),
+        Colour(0.0, 0.5, 1.0),
+        Colour(0.5, 0.5, 1.0),
+        Colour(1.0, 0.5, 1.0),
+        Colour(0.0, 1.0, 1.0),
+        Colour(0.5, 1.0, 1.0),
+        Colour(1.0, 1.0, 1.0)
+      ];
+
+      final lut = LUT.linear(3);
+
+      expect(lut.table3D.size, equals(3));
+      expect(lut.table3D.tbl.length, equals(27));
+      expect(lut.table3D.tbl, equals(tbl));
+    });
+
     test('create LUT from file', () async {
-      var f1 = new File('test/asserts/exmp.cube');
-      var l = LUT.fromString(f1.readAsStringSync());
+      final f1 = new File('test/asserts/exmp.cube');
+      final l = LUT.fromString(f1.readAsStringSync());
 
       final isLoaded = await l
           .awaitLoading()
@@ -68,7 +106,7 @@ void main() {
       expect(isLoaded, equals(true));
 
       expect(l, isNotNull);
-      expect(l.sizeOf3DTable, equals(2));
+      expect(l.table3D.size, equals(2));
       expect(l.title, equals('example'));
       expect(l.table3D, isNotNull);
       expect(l.table3D.get(0, 0, 0), isNotNull);
@@ -85,7 +123,7 @@ void main() {
       expect(isLoaded, equals(true));
 
       expect(l, isNotNull);
-      expect(l.sizeOf3DTable, equals(2));
+      expect(l.table3D.size, equals(2));
       expect(l.title, equals('example'));
       expect(l.table3D.get(0, 0, 0), isNotNull);
       expect(l.table3D.get(1, 1, 1), isNotNull);

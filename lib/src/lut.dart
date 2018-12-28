@@ -25,7 +25,7 @@ class LUT {
   /// Title of LUT table stroed at TITLE field
   String title;
 
-  int sizeOf3DTable = -1;
+  int _sizeOf3DTable = -1;
 
   Table3D<Colour> table3D;
 
@@ -66,7 +66,9 @@ class LUT {
 
   final Map<InterpolationType, Function> _typedFunction = new Map();
 
-  LUT._(this._stream) {
+  LUT._() : this._stream = null;
+
+  LUT._fromStream(this._stream) {
     _typedFunction[InterpolationType.trilinear] = _getFromRGBTrilinear;
 
     _lutTransformer = StreamTransformer<String, LUT>(_onStringStreamListen);
@@ -83,8 +85,47 @@ class LUT {
 
   /// This factory creating LUT from string
   factory LUT.fromString(String str) {
-    return LUT._(Stream.fromIterable(str.split('\n')));
+    return LUT._fromStream(Stream.fromIterable(str.split('\n')));
   }
+
+  factory LUT.linear(int size,
+      [Colour domainMax = const Colour(1, 1, 1),
+      Colour domainMin = const Colour(0, 0, 0)]) {
+    final lut = LUT._()
+      ..domainMax = domainMax
+      ..domainMin = domainMin
+      .._sizeOf3DTable = size
+      ..table3D = Table3D(size);
+
+    final ln = size * size * size;
+
+    final drs = (domainMax.r - domainMin.r) / (size - 1);
+    final dgs = (domainMax.g - domainMin.g) / (size - 1);
+    final dbs = (domainMax.b - domainMin.b) / (size - 1);
+
+    var r = domainMin.r;
+    var g = domainMin.r;
+    var b = domainMin.r;
+
+    for (var i = 0; i < ln; i++) {
+      final c = Colour(r, g, b);
+      lut.table3D.tbl[i] = c;
+
+      r += drs;
+      if (r > domainMax.r) {
+        r = 0;
+        g += dgs;
+        if (g > domainMax.g) {
+          g = 0;
+          b += dbs;
+        }
+      }
+    }
+
+    return lut;
+  }
+
+  
 
   StreamTransformer<String, LUT> _lutTransformer;
 
@@ -111,15 +152,15 @@ class LUT {
     subscription = _stream.listen(
         (s) {
           try {
-            if (sizeOf3DTable <= 0) {
+            if (_sizeOf3DTable <= 0) {
               if (title == null || title.isEmpty) {
                 title = _readTitle(s);
               }
-              if (sizeOf3DTable < 0) {
-                sizeOf3DTable = _read3DLUTSize(s);
-                if (sizeOf3DTable >= 2) {
-                  _k = (sizeOf3DTable - 1) / bpc;
-                  table3D = new Table3D(sizeOf3DTable);
+              if (_sizeOf3DTable < 0) {
+                _sizeOf3DTable = _read3DLUTSize(s);
+                if (_sizeOf3DTable >= 2) {
+                  _k = (_sizeOf3DTable - 1) / bpc;
+                  table3D = Table3D(_sizeOf3DTable);
                 }
               }
               domainMin ??= _readDomainMin(s);
@@ -130,11 +171,11 @@ class LUT {
                 table3D.set(x, y, z, rgb);
 
                 x++;
-                if (x == sizeOf3DTable) {
+                if (x == _sizeOf3DTable) {
                   x = 0;
                   y++;
                 }
-                if (y == sizeOf3DTable) {
+                if (y == _sizeOf3DTable) {
                   y = 0;
                   z++;
                 }
@@ -152,9 +193,9 @@ class LUT {
             domainMin ??= Colour(0, 0, 0);
             domainMax ??= Colour(1, 1, 1);
             _isLoadedStreamController.sink.add(!hasErrors &&
-                sizeOf3DTable >= 2 &&
+                _sizeOf3DTable >= 2 &&
                 table3D != null &&
-                table3D.size == sizeOf3DTable);
+                table3D.size == _sizeOf3DTable);
             _isLoadedStreamController.close();
           }
         },
@@ -344,20 +385,20 @@ class LUT {
 
   Colour _getFromRGBTrilinear(int r, int g, int b) {
     final iR = (r * _k);
-    final fR1 = iR >= sizeOf3DTable - 1
-        ? _clampToChannelSize(sizeOf3DTable - 1)
+    final fR1 = iR >= _sizeOf3DTable - 1
+        ? _clampToChannelSize(_sizeOf3DTable - 1)
         : _clampToChannelSize((iR + 1).floor());
     final fR0 = iR <= 0 ? 0 : _clampToChannelSize((iR - 1).floor());
 
     final iG = (g * _k);
-    final fG1 = iG >= sizeOf3DTable - 1
-        ? _clampToChannelSize(sizeOf3DTable - 1)
+    final fG1 = iG >= _sizeOf3DTable - 1
+        ? _clampToChannelSize(_sizeOf3DTable - 1)
         : _clampToChannelSize((iG + 1).floor());
     final fG0 = iG <= 0 ? 0 : _clampToChannelSize((iG - 1).floor());
 
     final iB = (b * _k);
-    final fB1 = iB >= sizeOf3DTable - 1
-        ? _clampToChannelSize(sizeOf3DTable - 1)
+    final fB1 = iB >= _sizeOf3DTable - 1
+        ? _clampToChannelSize(_sizeOf3DTable - 1)
         : _clampToChannelSize((iB + 1).floor());
     final fB0 = iB <= 0 ? 0 : _clampToChannelSize((iB - 1).floor());
 
