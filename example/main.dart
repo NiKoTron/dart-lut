@@ -11,14 +11,24 @@ void main(List<String> args) async {
     ..addOption('in-img', abbr: 'i')
     ..addOption('out-dir', abbr: 'o', defaultsTo: './out');
 
-  _run(parser.parse(args));
+    final argsRes = parser.parse(args);
+
+  _run(argsRes);
 }
 
 void _run(final ArgResults argResult) {
-  for (var img in argResult['in-img']) {
+  var inputs = argResult['in-img'];
+  
+  if(! (inputs is Iterable)){
+    inputs = [inputs];
+  }
+
+  for (var img in inputs) {
     final imageFile = File(img);
 
-    final lutFile = File(argResult['lut-file']);
+    final lutPath = argResult['lut-file'];
+
+    final lutFile = File(lutPath);
 
     final lut = LUT.fromString(lutFile.readAsStringSync());
 

@@ -86,6 +86,12 @@ class LUT {
     return LUT._(Stream.fromIterable(str.split('\n')));
   }
 
+  static Future<LUT> loadFromString(String stringData) async {
+    final lut = LUT.fromString(stringData);
+    final loaded  = await lut.awaitLoading();
+    return loaded ? lut : null;
+  }
+
   StreamTransformer<String, LUT> _lutTransformer;
 
   StreamSubscription<LUT> _onStringStreamListen(
@@ -111,7 +117,7 @@ class LUT {
     subscription = _stream.listen(
         (s) {
           try {
-            if (sizeOf3DTable <= 0) {
+            if (!RegExp(PATTERN_DATA).hasMatch(s)) { //sizeOf3DTable <= 0
               if (title == null || title.isEmpty) {
                 title = _readTitle(s);
               }
@@ -122,6 +128,7 @@ class LUT {
                   table3D = new Table3D(sizeOf3DTable);
                 }
               }
+
               domainMin ??= _readDomainMin(s);
               domainMax ??= _readDomainMax(s);
             } else {
@@ -182,7 +189,8 @@ class LUT {
   static final String PATTERN_DATA =
       r'^(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)\s+(\d+.\d+|\d+|.\d+)';
 
-  static final String PATTERN_TITLE = r'^TITLE\s+([\w|\s]+)$';
+  static final String PATTERN_TITLE = r'^TITLE\s+("[\w|\s]+")|([\w|\s]+)$';
+
 
   static String _readTitle(String s) {
     if (!s.startsWith(PARSE_COMMENT_LINE)) {
@@ -294,7 +302,8 @@ class LUT {
     final result = new List<int>(data.length);
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
+        //ignore: avoid_as
+        final rgb = fun(data[i], data[i + 1], data[i + 2]) as Colour;
 
         result[i] = _toIntCh(rgb.r * dKR);
         result[i + 1] = _toIntCh(rgb.g * dKG);
@@ -326,7 +335,8 @@ class LUT {
 
     if (data != null && data.length >= 4) {
       for (var i = 0; i < data.length; i += 4) {
-        final Colour rgb = fun(data[i], data[i + 1], data[i + 2]);
+        //ignore: avoid_as
+        final rgb = fun(data[i], data[i + 1], data[i + 2]) as Colour;
 
         yield _intRGBA(_toIntCh(rgb.r * dKR), _toIntCh(rgb.g * dKG),
             _toIntCh(rgb.b * dKB), bpc);

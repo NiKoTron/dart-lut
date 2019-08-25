@@ -1,5 +1,5 @@
 name: dart_lut
-version: 0.0.4
+version: 0.0.4+hotfix.1
 description: The implementation of image processing via 3D LUT (LookUp Tables). It's written on the pure Dart language so that it can be used with Flutter, CLI and web.
 author: Nikolai Simonov <nickolay.simonov@gmail.com>
 homepage: https://github.com/NiKoTron/dart-lut
