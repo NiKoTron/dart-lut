@@ -19,3 +19,7 @@
 - error handling while parsing LUT
 - added travis integration
 - some minor changes
+
+## 0.0.4+hotfix.1
+
+- fixed parsing cubes

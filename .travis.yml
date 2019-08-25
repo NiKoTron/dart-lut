@@ -25,14 +25,11 @@ jobs:
       
     - stage: deploy
       name: "Deploy on pub.dartlang.org"
-      if: branch = master
-      if: tag =~ /^v\d+.\d+.\d+/
-      script: skip
+      if: ((tag =~ ^v) AND (branch = master))
       deploy:
         provider: script
         script: ./tool/travis/pub.sh
         on:
-          tags: true
           branch: master
 
 branches:
