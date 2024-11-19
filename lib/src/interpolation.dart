@@ -6,12 +6,16 @@ class Interpolation {
   /// The linear interpolation
   static double lerp(num x, num x0, num x1, num y0, num y1) =>
       ((x1 - x0) == 0.0)
-          ? (y0 + (y1 - y0) / 2.0).toDouble()
+          ? y0.toDouble()
           : (y0 + (x - x0) * (y1 - y0) / (x1 - x0)).toDouble();
 
   /// The linear interpolation in 2D space
   static double bilerp(num x, num y, num q00, num q01, num q10, num q11, num x0,
       num x1, num y0, num y1) {
+    if (x1 - x0 == 0 || y1 - y0 == 0) {
+      return q00.toDouble();
+    }
+
     final r1 = ((x1 - x) / (x1 - x0)) * q00 + ((x - x0) / (x1 - x0)) * q10;
     final r2 = ((x1 - x) / (x1 - x0)) * q01 + ((x - x0) / (x1 - x0)) * q11;
 
@@ -39,6 +43,10 @@ class Interpolation {
       num y1,
       num z0,
       num z1) {
+    if (x1 - x0 == 0 || y1 - y0 == 0 || z1 - z0 == 0) {
+      return c000.toDouble();
+    }
+
     final xd = (x - x0) / (x1 - x0);
     final yd = (y - y0) / (y1 - y0);
     final zd = (z - z0) / (z1 - z0);

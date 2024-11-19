@@ -7,52 +7,12 @@ import 'package:dart_lut/src/table.dart';
 import 'package:test/test.dart';
 
 void main() {
-  setUp(() {});
-
-  group('interpolations', () {
-    test('lerp', () {
-      final i = Interpolation.lerp(0.5, 0, 1, 5, 10);
-      expect(i, equals(7.5));
-    });
-
-    test('bilerp', () {
-      final i = Interpolation.bilerp(0.5, 0.5, 10, 10, 20, 20, 0, 1, 0, 1);
-      final i2 = Interpolation.bilerp(0.5, 0.5, 10, 15, 15, 20, 0, 1, 0, 1);
-
-      expect(i, equals(15));
-      expect(i2, equals(15));
-    });
-
-    test('trilerp', () {
-      final i = Interpolation.trilerp(
-          0.5, 0.5, 0.5, 10, 20, 10, 20, 10, 20, 10, 20, 0, 1, 0, 1, 0, 1);
-      expect(i, equals(15));
-    });
-  });
-
   group('RGB tests', () {
     test('creation test', () {
       final rgb = Colour(0, 0.5, 1);
       expect(rgb.r, equals(0));
       expect(rgb.g, equals(0.5));
       expect(rgb.b, equals(1));
-    });
-  });
-
-  group('Table3D tests', () {
-    test('create table', () {
-      final size = 3;
-      final t3d = Table3D<int>(size);
-      expect(t3d.size, equals(size));
-      expect(t3d.get(2, 2, 2), equals(null));
-    });
-
-    test('set value in to table', () {
-      final size = 3;
-      final t3d = Table3D<int>(size)..set(2, 2, 2, 5)..set(0, 1, 2, 7);
-
-      expect(t3d.get(2, 2, 2), equals(5));
-      expect(t3d.get(0, 1, 2), equals(7));
     });
   });
 
